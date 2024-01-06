@@ -1,0 +1,103 @@
+openapi: 3.0.3
+info:
+  title: Tecoroute Manager
+  description: Tecoroute Manager public API.
+  version: 1.0.0
+
+servers:
+- url: /api/v1
+  description: This environment.
+
+paths:
+  /plcs/{plc_id}:
+    summary: The PLC restarting
+    delete:
+      tags:
+      - plc
+      summary: Restart the PLC
+      operationId: tecoroute_manager.api_v1.plc_delete
+      parameters:
+      - "$ref": "#/components/parameters/plc"
+      responses:
+        "204":
+          description: The PLC was restarted.
+        "4XX":
+          "$ref": "#/components/responses/client-error"
+        "5XX":
+          "$ref": "#/components/responses/server-error"
+
+components:
+  schemas:
+    plc:
+      type: integer
+      description: PLC ID
+      writeOnly: true
+      example: 1
+    restart:
+      type: boolean
+      description: True.
+      enum:
+      - true
+      example: true
+    client-error:
+      type: object
+      properties:
+        type:
+          type: string
+          description: URI that identifies the problem type.
+          format: uri
+          readOnly: true
+          example: about:blank
+        title:
+          type: string
+          description: A short summary of the problem type.
+          readOnly: true
+          example: A bad parameter was provided.
+        status:
+          type: integer
+          description: The HTTP status code.
+          format: int64
+          maximum: 499
+          minimum: 400
+          readOnly: true
+          example: 400
+        detail:
+          type: string
+          description: Explanation specific to this occurrence of the problem.
+          readOnly: true
+          example: Some parameter are not of a specific type.
+      required:
+      - type
+      - title
+      - status
+      - detail
+  responses:
+    client-error:
+      description: Client error.
+      content:
+        application/json:
+          schema:
+            "$ref": "#/components/schemas/client-error"
+    server-error:
+      description: Unexpected server error.
+  parameters:
+    plc:
+      name: plc_id
+      in: path
+      description: PLC ID
+      required: true
+      schema:
+        "$ref": "#/components/schemas/plc"
+  securitySchemes:
+    basicAuth:
+      type: http
+      description: Access token.
+      scheme: basic
+      x-basicInfoFunc: tecoroute_manager.api_v1.authentication
+
+security:
+- basicAuth: []
+
+tags:
+- name: plc
+  description: PLC.
